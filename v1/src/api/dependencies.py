@@ -4,7 +4,6 @@ Dependency injection for WiFi-DensePose API
 
 import logging
 from typing import Optional, Dict, Any
-from functools import lru_cache
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -22,40 +21,37 @@ security = HTTPBearer(auto_error=False)
 
 
 # Service dependencies
-@lru_cache()
-def get_pose_service() -> PoseService:
-    """Get pose service instance."""
-    settings = get_settings()
-    domain_config = get_domain_config()
-    
-    return PoseService(
-        settings=settings,
-        domain_config=domain_config
-    )
+async def get_pose_service(request: Request) -> PoseService:
+    """Get the orchestrator-managed pose service from app state."""
+    service = getattr(request.app.state, 'pose_service', None)
+    if service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Pose service is not available"
+        )
+    return service
 
 
-@lru_cache()
-def get_stream_service() -> StreamService:
-    """Get stream service instance."""
-    settings = get_settings()
-    domain_config = get_domain_config()
-    
-    return StreamService(
-        settings=settings,
-        domain_config=domain_config
-    )
+async def get_stream_service(request: Request) -> StreamService:
+    """Get the orchestrator-managed stream service from app state."""
+    service = getattr(request.app.state, 'stream_service', None)
+    if service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Stream service is not available"
+        )
+    return service
 
 
-@lru_cache()
-def get_hardware_service() -> HardwareService:
-    """Get hardware service instance."""
-    settings = get_settings()
-    domain_config = get_domain_config()
-    
-    return HardwareService(
-        settings=settings,
-        domain_config=domain_config
-    )
+async def get_hardware_service(request: Request) -> HardwareService:
+    """Get the orchestrator-managed hardware service from app state."""
+    service = getattr(request.app.state, 'hardware_service', None)
+    if service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Hardware service is not available"
+        )
+    return service
 
 
 # Authentication dependencies
