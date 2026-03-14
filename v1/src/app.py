@@ -39,6 +39,11 @@ async def lifespan(app: FastAPI):
         # Start all services
         await orchestrator.start()
         
+        # Expose services to routers
+        app.state.hardware_service = orchestrator.hardware_service
+        app.state.pose_service = orchestrator.pose_service
+        app.state.stream_service = orchestrator.stream_service
+        
         logger.info("WiFi-DensePose API started successfully")
         
         yield
